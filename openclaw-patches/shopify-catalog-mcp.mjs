@@ -104,7 +104,7 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
   const qLower = String(query || "").toLowerCase();
   const audience = qLower.includes("kid")
     ? "kids"
-    : qLower.includes("teen") || qLower.includes("desk")
+    : qLower.includes("teen") || qLower.includes("desk") || qLower === "hoodie"
       ? "teens"
       : qLower.includes("blanket") || qLower.includes("grand")
         ? "grandparents"
@@ -132,7 +132,7 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
       store,
       audience,
       description: title,
-      reason: "Great Christmas gift",
+      reason: `Top Christmas holiday gift choice for ${audience} from verified Shopify store ${store}`,
     });
   }
 
@@ -145,7 +145,10 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
 
 const WARM_CACHE = new Map();
 const WARM_INFLIGHT = new Map();
-const PREWARM_QUERIES = ["kids toy", "teen desk", "candle", "blanket", "pet toy"];
+const PREWARM_QUERIES = [
+  "kids hoodie", "hoodie", "sweatpants", "blanket", "dog toy",
+  "kids toy", "teen desk", "candle", "pet toy"
+];
 
 function loadDiskCache() {
   try {

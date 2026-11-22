@@ -157,22 +157,26 @@ s = s.slice(0, piStart) + testingParamsBlock + s.slice(piEnd);
 fs.writeFileSync(transportPath, s, "utf8");
 console.log("Applied experimental testing transport patch to:", transportPath);
 
-// 3. Cap OpenClaw 429 retry backoff at 8s (instead of 60s) so Cerebras brief queue spikes recover in seconds, not 5+ minutes
+// 3. Fail fast on Cerebras 429 bursts (2 quick retries capped at 2s => ~3-4s max instead of stalling)
 const embeddedAgentPath = path.join(
   home,
   ".npm-global/lib/node_modules/openclaw/dist/embedded-agent-BAcI9cGJ.mjs"
 );
 if (fs.existsSync(embeddedAgentPath)) {
   let ea = fs.readFileSync(embeddedAgentPath, "utf8");
-  const patchedEa = ea.replace(
+  let patchedEa = ea.replace(
     /const RATE_LIMIT_RETRY_MAX_DELAY_MS = [^;]+;/,
-    "const RATE_LIMIT_RETRY_MAX_DELAY_MS = 8e3;"
+    "const RATE_LIMIT_RETRY_MAX_DELAY_MS = 2e3;"
+  );
+  patchedEa = patchedEa.replace(
+    /const d = Math\.min\(g \?\? \(i \? \d+ : MAX_TRANSIENT_RETRIES\), m \? \d+ : Infinity, h \? SHARED_TPM_FALLBACK_MAX_RETRIES : Infinity\);/,
+    "const d = Math.min(g ?? (i ? 2 : MAX_TRANSIENT_RETRIES), m ? 2 : Infinity, h ? SHARED_TPM_FALLBACK_MAX_RETRIES : Infinity);"
   );
   if (patchedEa !== ea) {
     fs.writeFileSync(embeddedAgentPath, patchedEa, "utf8");
-    console.log("Patched RATE_LIMIT_RETRY_MAX_DELAY_MS = 8e3 in:", embeddedAgentPath);
+    console.log("Patched fail-fast 429 retry (max 2 retries, 2s cap) in:", embeddedAgentPath);
   } else {
-    console.log("RATE_LIMIT_RETRY_MAX_DELAY_MS already 8e3 in:", embeddedAgentPath);
+    console.log("Fail-fast 429 retry already active in:", embeddedAgentPath);
   }
 }
 

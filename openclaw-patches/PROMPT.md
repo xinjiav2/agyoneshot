@@ -19,7 +19,20 @@ node openclaw-patches/apply-patches.mjs
 systemctl --user restart openclaw-gateway.service
 ```
 
-## Fast English Prompt (Recommended — Zero Language Switching)
+## Fast English Prompt (Recommended — Zero `?variant=` URLs, `in=371`, `rTok=9`)
+
+```text
+Call search_catalog 5x in parallel:
+{"limit":1,"query":"kids hoodie","view":"compact"}
+{"limit":1,"query":"hoodie","view":"compact"}
+{"limit":1,"query":"sweatpants","view":"compact"}
+{"limit":1,"query":"blanket","view":"compact"}
+{"limit":1,"query":"dog toy","view":"compact"}
+No 2nd tool call. Zero prose, no markdown. Output raw single-line JSON copying all 5 objects verbatim into gifts:
+{"gifts":[{"name":"","url":"","price_aud":0,"store":"","audience":"","description":"","reason":""}]}
+```
+
+## Classic 5-Query English Prompt
 
 ```text
 Fast Christmas gift search: immediately call search_catalog 5 times in parallel in 1 turn with these exact arguments:
