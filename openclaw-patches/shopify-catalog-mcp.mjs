@@ -79,12 +79,14 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
     const v = Array.isArray(p?.variants) && p.variants.length > 0 ? p.variants[0] : null;
     if (!v || !v.url) continue;
     const rawAmount = v.price?.amount;
-    const price =
+    const isAud = !v.price?.currency || String(v.price.currency).toUpperCase() === "AUD";
+    const parsedPrice =
       typeof rawAmount === "number"
         ? Number((rawAmount / 100).toFixed(2))
         : typeof rawAmount === "string" && !Number.isNaN(Number(rawAmount))
           ? Number((Number(rawAmount) / 100).toFixed(2))
           : null;
+    const price = isAud ? parsedPrice : null;
     const title = String(p.title || v.title || "").replace(/["\\\r\n]+/g, " ").replace(/\s+/g, " ").trim();
     const store = String(v.seller?.name || "").replace(/["\\\r\n]+/g, " ").replace(/\s+/g, " ").trim();
     items.push({
@@ -178,7 +180,7 @@ async function handleMessage(msg) {
     const limit = args.limit ?? args.catalog?.pagination?.limit ?? 1;
     try {
       const products = await queryShopifyCatalog(query, limit, true);
-      const payload = products.length === 1 ? products[0] : { query, products };
+      const payload = products.length === 1 ? products[0] : products.length === 0 ? null : { query, products };
       sendResponse({
         jsonrpc: "2.0",
         id: msg.id,

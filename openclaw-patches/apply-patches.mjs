@@ -127,7 +127,7 @@ const testingParamsBlock = `\t\t\tlet params = builtParams;
 \t\t\t\t\tconst toolMsgs = Array.isArray(params.messages) ? params.messages.filter((m) => m?.role === "tool") : [];
 \t\t\t\t\tconst hasToolResults = toolMsgs.length > 0;
 \t\t\t\t\tconst toolChars = toolMsgs.reduce((acc, m) => acc + getText(m.content).length, 0);
-\t\t\t\t\tconst maxOut = hasToolResults ? Math.min(768, Math.max(512, Math.ceil(toolChars / 2.2) + 96)) : 420;
+\t\t\t\t\tconst maxOut = hasToolResults ? Math.min(640, Math.max(400, Math.ceil(toolChars / 2.2) + 80)) : 420;
 \t\t\t\t\tparams.max_completion_tokens = maxOut;
 \t\t\t\t\tif (typeof params.max_tokens === "number") params.max_tokens = maxOut;
 \t\t\t\t\tparams.tools = [{
