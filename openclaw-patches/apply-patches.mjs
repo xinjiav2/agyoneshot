@@ -130,25 +130,30 @@ const testingParamsBlock = `\t\t\tlet params = builtParams;
 \t\t\t\t\tconst maxOut = hasToolResults ? Math.min(768, Math.max(512, Math.ceil(toolChars / 2.2) + 96)) : 420;
 \t\t\t\t\tparams.max_completion_tokens = maxOut;
 \t\t\t\t\tif (typeof params.max_tokens === "number") params.max_tokens = maxOut;
-\t\t\t\t\tparams.tools = [{
-\t\t\t\t\t\ttype: "function",
-\t\t\t\t\t\tfunction: {
-\t\t\t\t\t\t\tname: "search_catalog",
-\t\t\t\t\t\t\tdescription: "Search Shopify Global Catalog",
-\t\t\t\t\t\t\tparameters: {
-\t\t\t\t\t\t\t\ttype: "object",
-\t\t\t\t\t\t\t\trequired: ["query"],
-\t\t\t\t\t\t\t\tproperties: {
-\t\t\t\t\t\t\t\t\tlimit: { type: "number" },
-\t\t\t\t\t\t\t\t\tquery: { type: "string" },
-\t\t\t\t\t\t\t\t\tview: { type: "string" }
+\t\t\t\t\tif (hasToolResults) {
+\t\t\t\t\t\tdelete params.tools;
+\t\t\t\t\t\tdelete params.tool_choice;
+\t\t\t\t\t\tdelete params.parallel_tool_calls;
+\t\t\t\t\t} else {
+\t\t\t\t\t\tparams.tools = [{
+\t\t\t\t\t\t\ttype: "function",
+\t\t\t\t\t\t\tfunction: {
+\t\t\t\t\t\t\t\tname: "search_catalog",
+\t\t\t\t\t\t\t\tdescription: "Search Shopify Global Catalog",
+\t\t\t\t\t\t\t\tparameters: {
+\t\t\t\t\t\t\t\t\ttype: "object",
+\t\t\t\t\t\t\t\t\trequired: ["query"],
+\t\t\t\t\t\t\t\t\tproperties: {
+\t\t\t\t\t\t\t\t\t\tlimit: { type: "number" },
+\t\t\t\t\t\t\t\t\t\tquery: { type: "string" },
+\t\t\t\t\t\t\t\t\t\tview: { type: "string" }
+\t\t\t\t\t\t\t\t\t}
 \t\t\t\t\t\t\t\t}
 \t\t\t\t\t\t\t}
-\t\t\t\t\t\t}
-\t\t\t\t\t}];
-\t\t\t\t\tparams.parallel_tool_calls = true;
-\t\t\t\t\tif (hasToolResults) delete params.tool_choice;
-\t\t\t\t\telse params.tool_choice = "required";
+\t\t\t\t\t\t}];
+\t\t\t\t\t\tparams.parallel_tool_calls = true;
+\t\t\t\t\t\tparams.tool_choice = "required";
+\t\t\t\t\t}
 \t\t\t\t}
 \t\t\t}
 `;
