@@ -242,7 +242,16 @@ const rl = readline.createInterface({
   crlfDelay: Infinity,
 });
 
+// Auto-exit after 45s idle (or when stdin closes) so repeated /new chats never leak MCP + anchor processes
+const IDLE_EXIT_MS = 45_000;
+let idleTimer = setTimeout(() => process.exit(0), IDLE_EXIT_MS);
+function bumpIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => process.exit(0), IDLE_EXIT_MS);
+}
+
 rl.on("line", (line) => {
+  bumpIdle();
   const trimmed = line.trim();
   if (!trimmed) return;
   try {
@@ -252,3 +261,6 @@ rl.on("line", (line) => {
     // ignore malformed input
   }
 });
+
+rl.on("close", () => process.exit(0));
+process.stdin.on("end", () => process.exit(0));
