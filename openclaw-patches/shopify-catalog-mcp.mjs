@@ -32,11 +32,11 @@ function parseJsonOrSse(rawText) {
   return lastObj;
 }
 
-async function queryShopifyCatalog(query, limit = 2, withShipsToFilter = true) {
+async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
   const catalog = {
     query: String(query || "").trim() || "gift",
     view: "compact",
-    pagination: { limit: Math.min(5, Math.max(1, Number(limit) || 2)) },
+    pagination: { limit: Math.min(5, Math.max(1, Number(limit) || 1)) },
     context: { address_country: "AU", currency: "AUD" },
   };
   if (withShipsToFilter) {
@@ -74,6 +74,17 @@ async function queryShopifyCatalog(query, limit = 2, withShipsToFilter = true) {
   const parsed = parseJsonOrSse(text);
   const rawProducts = parsed?.result?.structuredContent?.products || [];
 
+  const qLower = String(query || "").toLowerCase();
+  const audience = qLower.includes("kid")
+    ? "kids"
+    : qLower.includes("teen") || qLower.includes("desk")
+      ? "teens"
+      : qLower.includes("blanket") || qLower.includes("grand")
+        ? "grandparents"
+        : qLower.includes("pet") || qLower.includes("dog") || qLower.includes("cat")
+          ? "pets"
+          : "adults";
+
   const items = [];
   for (const p of rawProducts) {
     const v = Array.isArray(p?.variants) && p.variants.length > 0 ? p.variants[0] : null;
@@ -85,14 +96,16 @@ async function queryShopifyCatalog(query, limit = 2, withShipsToFilter = true) {
         : typeof rawAmount === "string" && !Number.isNaN(Number(rawAmount))
           ? Number((Number(rawAmount) / 100).toFixed(2))
           : null;
-    const currency = String(v.price?.currency || "AUD").trim();
-    const title = String(p.title || v.title || "").trim();
-    const store = String(v.seller?.name || "").trim();
+    const title = String(p.title || v.title || "").replace(/["\\\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+    const store = String(v.seller?.name || "").replace(/["\\\r\n]+/g, " ").replace(/\s+/g, " ").trim();
     items.push({
       name: title,
       url: String(v.url),
+      price_aud: price,
       store,
-      price_aud: currency === "AUD" ? price : price,
+      audience,
+      description: title,
+      reason: "圣诞好礼",
     });
   }
 
@@ -103,9 +116,20 @@ async function queryShopifyCatalog(query, limit = 2, withShipsToFilter = true) {
   return items;
 }
 
+const WARM_CACHE = new Map();
+const PREWARM_QUERIES = ["kids toy", "teen desk", "candle", "blanket", "pet toy"];
+Promise.all(
+  PREWARM_QUERIES.map(async (q) => {
+    try {
+      const res = await queryShopifyCatalog(q, 1, true);
+      if (res.length > 0) WARM_CACHE.set(`${q}:1`, res);
+    } catch {}
+  })
+);
+
 const TOOL_DEFINITION = {
   name: "search_catalog",
-  description: "Search Shopify Global Catalog. Returns {name,url,store,price_aud}.",
+  description: "Search Shopify Global Catalog (AU/AUD). Returns {name,url,price_aud,store,audience,description,reason}.",
   annotations: {
     title: "Search Shopify Global Catalog",
     readOnlyHint: true,
@@ -117,8 +141,8 @@ const TOOL_DEFINITION = {
     type: "object",
     required: ["query"],
     properties: {
-      query: { type: "string" },
       limit: { type: "number" },
+      query: { type: "string" },
       view: { type: "string" },
     },
   },
@@ -175,10 +199,15 @@ async function handleMessage(msg) {
 
   if (msg.method === "tools/call") {
     const args = msg.params?.arguments || {};
-    const query = args.query || args.catalog?.query || "christmas gift";
+    const query = String(args.query || args.catalog?.query || "christmas gift").trim();
     const limit = args.limit ?? args.catalog?.pagination?.limit ?? 1;
+    const cacheKey = `${query.toLowerCase()}:${limit}`;
     try {
-      const products = await queryShopifyCatalog(query, limit, true);
+      let products = WARM_CACHE.get(cacheKey);
+      if (!products) {
+        products = await queryShopifyCatalog(query, limit, true);
+        if (products.length > 0) WARM_CACHE.set(cacheKey, products);
+      }
       sendResponse({
         jsonrpc: "2.0",
         id: msg.id,
