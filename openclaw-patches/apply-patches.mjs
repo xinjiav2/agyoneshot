@@ -115,7 +115,7 @@ const testingParamsBlock = `\t\t\tlet params = builtParams;
 \t\t\t\t\t\t\t\t\t\tif (idx >= 0 && (cut === -1 || idx < cut)) cut = idx;
 \t\t\t\t\t\t\t\t\t}
 \t\t\t\t\t\t\t\t\tlet cleaned = cut >= 0 ? raw.slice(cut) : raw;
-\t\t\t\t\t\t\t\t\tconst schemaEnd = cleaned.indexOf("}]}" );
+\t\t\t\t\t\t\t\t\tconst schemaEnd = cleaned.lastIndexOf("}]}");
 \t\t\t\t\t\t\t\t\tif (schemaEnd > 0) cleaned = cleaned.slice(0, schemaEnd + 3);
 \t\t\t\t\t\t\t\t\treturn { role: "user", content: cleaned.trim() };
 \t\t\t\t\t\t\t\t}
@@ -127,7 +127,12 @@ const testingParamsBlock = `\t\t\tlet params = builtParams;
 \t\t\t\t\tconst toolMsgs = Array.isArray(params.messages) ? params.messages.filter((m) => m?.role === "tool") : [];
 \t\t\t\t\tconst hasToolResults = toolMsgs.length > 0;
 \t\t\t\t\tconst toolChars = toolMsgs.reduce((acc, m) => acc + getText(m.content).length, 0);
-\t\t\t\t\tconst maxOut = hasToolResults ? Math.min(768, Math.max(512, Math.ceil(toolChars / 2.2) + 96)) : 420;
+\t\t\t\t\tconst cleanedUserMsg = Array.isArray(params.messages) ? params.messages.find((m) => m?.role === "user") : null;
+\t\t\t\t\tconst cleanedUserChars = cleanedUserMsg ? getText(cleanedUserMsg.content).length : lastUserTxt.length;
+\t\t\t\t\tconst hasCriteria = lastUserTxt.includes('"criteria"');
+\t\t\t\t\tconst maxOut = hasToolResults
+\t\t\t\t\t\t? Math.min(1400, Math.max(420, Math.ceil(toolChars / 2.8) + 96))
+\t\t\t\t\t\t: Math.min(1024, Math.max(420, Math.ceil(cleanedUserChars / 2.2) + 128));
 \t\t\t\t\tparams.max_completion_tokens = maxOut;
 \t\t\t\t\tif (typeof params.max_tokens === "number") params.max_tokens = maxOut;
 \t\t\t\t\tif (hasToolResults) {
@@ -135,6 +140,18 @@ const testingParamsBlock = `\t\t\tlet params = builtParams;
 \t\t\t\t\t\tdelete params.tool_choice;
 \t\t\t\t\t\tdelete params.parallel_tool_calls;
 \t\t\t\t\t} else {
+\t\t\t\t\t\tconst props = hasCriteria
+\t\t\t\t\t\t\t? {
+\t\t\t\t\t\t\t\tcriteria: { type: "string" },
+\t\t\t\t\t\t\t\tlimit: { type: "number" },
+\t\t\t\t\t\t\t\tquery: { type: "string" },
+\t\t\t\t\t\t\t\tview: { type: "string" }
+\t\t\t\t\t\t\t}
+\t\t\t\t\t\t\t: {
+\t\t\t\t\t\t\t\tlimit: { type: "number" },
+\t\t\t\t\t\t\t\tquery: { type: "string" },
+\t\t\t\t\t\t\t\tview: { type: "string" }
+\t\t\t\t\t\t\t};
 \t\t\t\t\t\tparams.tools = [{
 \t\t\t\t\t\t\ttype: "function",
 \t\t\t\t\t\t\tfunction: {
@@ -143,11 +160,7 @@ const testingParamsBlock = `\t\t\tlet params = builtParams;
 \t\t\t\t\t\t\t\tparameters: {
 \t\t\t\t\t\t\t\t\ttype: "object",
 \t\t\t\t\t\t\t\t\trequired: ["query"],
-\t\t\t\t\t\t\t\t\tproperties: {
-\t\t\t\t\t\t\t\t\t\tlimit: { type: "number" },
-\t\t\t\t\t\t\t\t\t\tquery: { type: "string" },
-\t\t\t\t\t\t\t\t\t\tview: { type: "string" }
-\t\t\t\t\t\t\t\t\t}
+\t\t\t\t\t\t\t\t\tproperties: props
 \t\t\t\t\t\t\t\t}
 \t\t\t\t\t\t\t}
 \t\t\t\t\t\t}];
