@@ -1,9 +1,5 @@
 #!/usr/bin/env node
-import fs from "node:fs";
 import readline from "node:readline";
-
-const DISK_CACHE_PATH = "/tmp/shopify-au-warm-cache.json";
-const DISK_CACHE_TTL_MS = 15 * 60 * 1000;
 
 const SHOPIFY_MCP_URL = "https://catalog.shopify.com/api/ucp/mcp";
 const SHOPIFY_PROFILE_URL =
@@ -34,29 +30,6 @@ function parseJsonOrSse(rawText) {
     }
   }
   return lastObj;
-}
-
-function cleanPlainText(raw, fallback = "", maxLen = 240) {
-  let s = "";
-  if (typeof raw === "string") s = raw;
-  else if (raw && typeof raw === "object") s = String(raw.plain || raw.text || raw.value || "");
-  s = s
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<!--[\s\S]*?-->/g, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, " and ")
-    .replace(/&quot;|&#34;|&apos;|&#39;/gi, "")
-    .replace(/&#\d+;|&[a-z]+;/gi, " ")
-    .replace(/[^A-Za-z0-9.,\- ]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!s) return fallback;
-  if (s.length <= maxLen) return s;
-  const cut = s.slice(0, maxLen);
-  const lastSpace = cut.lastIndexOf(" ");
-  return (lastSpace > maxLen * 0.6 ? cut.slice(0, lastSpace) : cut).trim();
 }
 
 async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
@@ -101,17 +74,6 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
   const parsed = parseJsonOrSse(text);
   const rawProducts = parsed?.result?.structuredContent?.products || [];
 
-  const qLower = String(query || "").toLowerCase();
-  const audience = qLower.includes("kid")
-    ? "kids"
-    : qLower.includes("teen") || qLower.includes("desk") || qLower === "hoodie"
-      ? "teens"
-      : qLower.includes("blanket") || qLower.includes("grand")
-        ? "grandparents"
-        : qLower.includes("pet") || qLower.includes("dog") || qLower.includes("cat")
-          ? "pets"
-          : "adults";
-
   const items = [];
   for (const p of rawProducts) {
     const v = Array.isArray(p?.variants) && p.variants.length > 0 ? p.variants[0] : null;
@@ -130,9 +92,6 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
       url: String(v.url),
       price_aud: price,
       store,
-      audience,
-      description: title,
-      reason: `Top Christmas holiday gift choice for ${audience} from verified Shopify store ${store}`,
     });
   }
 
@@ -143,69 +102,9 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
   return items;
 }
 
-const WARM_CACHE = new Map();
-const WARM_INFLIGHT = new Map();
-const PREWARM_QUERIES = [
-  "kids hoodie", "hoodie", "sweatpants", "blanket", "dog toy",
-  "kids toy", "teen desk", "candle", "pet toy"
-];
-
-function loadDiskCache() {
-  try {
-    const raw = JSON.parse(fs.readFileSync(DISK_CACHE_PATH, "utf8"));
-    const now = Date.now();
-    if (raw && typeof raw === "object" && raw.entries && typeof raw.entries === "object") {
-      for (const [k, v] of Object.entries(raw.entries)) {
-        if (v && Array.isArray(v.items) && v.items.length > 0 && now - (v.ts || 0) < DISK_CACHE_TTL_MS) {
-          WARM_CACHE.set(k, v.items);
-        }
-      }
-    }
-  } catch {}
-}
-
-function saveDiskCache() {
-  try {
-    const now = Date.now();
-    const entries = {};
-    for (const [k, items] of WARM_CACHE.entries()) {
-      entries[k] = { ts: now, items };
-    }
-    fs.writeFileSync(DISK_CACHE_PATH, JSON.stringify({ entries }), "utf8");
-  } catch {}
-}
-
-loadDiskCache();
-
-function fetchWithDedup(query, limit) {
-  const key = `${String(query || "").trim().toLowerCase()}:${limit}`;
-  const cached = WARM_CACHE.get(key);
-  if (cached) return Promise.resolve(cached);
-  const inflight = WARM_INFLIGHT.get(key);
-  if (inflight) return inflight;
-  const p = queryShopifyCatalog(query, limit, true)
-    .then((res) => {
-      if (res.length > 0) {
-        WARM_CACHE.set(key, res);
-        saveDiskCache();
-      }
-      return res;
-    })
-    .finally(() => {
-      WARM_INFLIGHT.delete(key);
-    });
-  WARM_INFLIGHT.set(key, p);
-  return p;
-}
-for (const q of PREWARM_QUERIES) {
-  if (!WARM_CACHE.has(`${q}:1`)) {
-    void fetchWithDedup(q, 1).catch(() => {});
-  }
-}
-
 const TOOL_DEFINITION = {
   name: "search_catalog",
-  description: "Search Shopify Global Catalog (AU/AUD). Returns {name,url,price_aud,store,audience,description,reason}.",
+  description: "Search live Shopify Global Catalog (AU/AUD). Returns real product {name,url,price_aud,store}.",
   annotations: {
     title: "Search Shopify Global Catalog",
     readOnlyHint: true,
@@ -278,7 +177,7 @@ async function handleMessage(msg) {
     const query = String(args.query || args.catalog?.query || "christmas gift").trim();
     const limit = args.limit ?? args.catalog?.pagination?.limit ?? 1;
     try {
-      const products = await fetchWithDedup(query, limit);
+      const products = await queryShopifyCatalog(query, limit, true);
       const payload = products.length === 1 ? products[0] : { query, products };
       sendResponse({
         jsonrpc: "2.0",
