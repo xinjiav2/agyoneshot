@@ -863,6 +863,17 @@ async function runLiveLane({
           continue;
         }
 
+        // If 404 model_not_found on Cerebras with kimi-k3.1-pro alias, auto-resolve to moonshotai-kimi-k3.1-pro-trial
+        if (
+          res.status === 404 &&
+          laneId === 'cerebras' &&
+          model !== 'moonshotai-kimi-k3.1-pro-trial' &&
+          /model_not_found|does not exist/i.test(errBody)
+        ) {
+          model = 'moonshotai-kimi-k3.1-pro-trial';
+          continue;
+        }
+
         const isRateLimit =
           res.status === 429 ||
           /rate[_ -]?limit|too[_ -]?many[_ -]?requests/i.test(errBody);
