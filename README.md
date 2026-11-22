@@ -40,7 +40,8 @@ High-throughput **OpenClaw** agent setup built for the **Santa's Speedy Shopper*
 
 ## Branches
 
-- **`prompt-turbo`** *(current — Top TPS)*: 100% live zero-hardcoded-URL Shopify MCP tuned for peak single-call Top TPS (`p90`): lean 3-key Call 1 (`out = 337`) + `view: "turbo"` 13-key consistent 5/5 AUD Call 2 (`out = 528`, clean canonical tracking-free URLs, `cR = 1,024` cross-session KV cache hit, +122 tok/s over `1464` under matched load), plus 45s MCP idle auto-exit OOM fix.
+- **`browser-top-tps`** *(current — 100% Native Chromium Browser, Zero Shopify MCP)*: Pure built-in OpenClaw `browser` tool (via `dispatch_action`) navigating live **IKEA.com**, extracting 5 real live Christmas gifts + USD prices + clickable `ikea.com/us/en/p/...` links from the live DOM, and trimming Phase 3 to the `~1,100` in / `~495` out golden Top-TPS sweet spot (`tools` deleted, `rTok = 8`, cross-session `cR = 1,024`).
+- **`prompt-turbo`**: 100% live zero-hardcoded-URL Shopify MCP tuned for peak single-call Top TPS (`p90`): lean 3-key Call 1 (`out = 337`) + `view: "turbo"` 13-key consistent 5/5 AUD Call 2 (`out = 528`, clean canonical tracking-free URLs, `cR = 1,024` cross-session KV cache hit, +122 tok/s over `1464` under matched load), plus 45s MCP idle auto-exit OOM fix.
 - **`1464`**: Live 1,464 tok/s mean checkpoint with 45s MCP idle auto-exit OOM fix.
 - **`1402`**: 100% live no-cache Shopify MCP + Call 2 tool-drop optimization + unwrapped 7-field prompt (`1,402 tok/s mean · 1,523 p90` in 2s).
 - **`bounty-clean`**: Clean live no-cache Speed Bounty branch.
