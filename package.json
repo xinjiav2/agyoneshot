@@ -1,0 +1,13 @@
+{
+  "name": "kimi-speed-race",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kimi K3.1 Pro Speed Race: Cerebras vs GPU Christmas gift picker demo",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

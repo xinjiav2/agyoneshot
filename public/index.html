@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kimi K3.1 Pro: Cerebras vs GPU</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --panel: #0f1626;
+      --panel-alt: #131c31;
+      --border: #23314f;
+      --text: #f3f6fc;
+      --muted: #93a4c3;
+      --cerebras: #ff6b2b;
+      --cerebras-glow: rgba(255, 107, 43, 0.22);
+      --gpu: #38bdf8;
+      --gpu-glow: rgba(56, 189, 248, 0.18);
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #a855f7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #121d36 0%, var(--bg) 65%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      padding: 20px 28px 48px;
+      line-height: 1.45;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* Top Alerts & Mode Banners */
+    .alert-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
+    }
+
+    .alert-banner.visible {
+      display: flex;
+    }
+
+    .banner-missing-keys {
+      background: rgba(239, 68, 68, 0.16);
+      border: 2px solid var(--red);
+      color: #fecaca;
+    }
+
+    .banner-mode-mock {
+      background: rgba(245, 158, 11, 0.2);
+      border: 2px solid var(--amber);
+      color: #fde68a;
+      font-size: 1.3rem;
+      justify-content: center;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      box-shadow: 0 0 24px rgba(245, 158, 11, 0.2);
+    }
+
+    .banner-mode-replay {
+      background: rgba(168, 85, 247, 0.2);
+      border: 2px solid var(--purple);
+      color: #e9d5ff;
+      font-size: 1.25rem;
+      justify-content: center;
+      letter-spacing: 0.03em;
+      box-shadow: 0 0 24px rgba(168, 85, 247, 0.2);
+    }
+
+    /* Header & Controls */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .title-group h1 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .title-group p {
+      color: var(--muted);
+      font-size: 0.98rem;
+      margin-top: 3px;
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      background: var(--panel);
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 9px;
+      padding: 11px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b2b 0%, #ea580c 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(255, 107, 43, 0.35);
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #27354d;
+    }
+
+    .control-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--panel-alt);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .control-pill select {
+      background: #0b1120;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #334155;
+      transition: 0.2s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.2s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--cerebras);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Shopify Status Line */
+    .shopify-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.92rem;
+      color: var(--muted);
+      background: rgba(15, 22, 38, 0.75);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 14px;
+      margin-bottom: 16px;
+    }
+
+    .shopify-bar strong {
+      color: var(--text);
+    }
+
+    .category-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cat-pill {
+      background: #172138;
+      border: 1px solid #28385c;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+
+    /* Speedup Winner Banner */
+    .winner-banner {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 18px 24px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(255, 107, 43, 0.22) 100%);
+      border: 2px solid var(--green);
+      box-shadow: 0 0 32px rgba(34, 197, 94, 0.18);
+    }
+
+    .winner-banner.visible {
+      display: flex;
+    }
+
+    .winner-headline {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .winner-averages {
+      margin-top: 6px;
+      font-size: 1.05rem;
+      color: #bbf7d0;
+      font-weight: 600;
+    }
+
+    /* Two Lanes Grid */
+    .lanes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 980px) {
+      .lanes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .lane-card {
+      background: var(--panel);
+      border-radius: 16px;
+      border: 2px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .lane-card.lane-cerebras {
+      border-color: rgba(255, 107, 43, 0.55);
+      box-shadow: 0 8px 30px var(--cerebras-glow);
+    }
+
+    .lane-card.lane-gpu {
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 8px 30px var(--gpu-glow);
+    }
+
+    .lane-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lane-title {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .lane-name {
+      font-size: 1.35rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lane-cerebras .lane-name {
+      color: var(--cerebras);
+    }
+
+    .lane-gpu .lane-name {
+      color: var(--gpu);
+    }
+
+    .lane-model {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.88rem;
+      color: var(--muted);
+      background: #090e1a;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      display: inline-block;
+    }
+
+    .lane-stopwatch {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 2.75rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lane-cerebras .lane-stopwatch {
+      color: #fff;
+      text-shadow: 0 0 18px rgba(255, 107, 43, 0.55);
+    }
+
+    .lane-gpu .lane-stopwatch {
+      color: #fff;
+      text-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
+    }
+
+    /* Metrics Bar inside Lane */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .metric-box {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .metric-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .metric-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-top: 2px;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Status / Retry / Notices */
+    .lane-status-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      min-height: 24px;
+    }
+
+    .status-badge {
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-idle {
+      background: #1e293b;
+      color: #94a3b8;
+    }
+
+    .badge-running {
+      background: rgba(56, 189, 248, 0.18);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .badge-done {
+      background: rgba(34, 197, 94, 0.18);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .badge-retry {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+
+    .badge-error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+    }
+
+    .badge-notice {
+      background: rgba(168, 85, 247, 0.18);
+      color: #d8b4fe;
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .ratelimit-headers {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.74rem;
+      color: #7c8da8;
+      background: #090e1a;
+      border: 1px solid #1a253d;
+      border-radius: 7px;
+      padding: 6px 10px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 30px;
+    }
+
+    /* Stream Output Console */
+    .stream-box {
+      background: #070b13;
+      border: 1px solid #1e2b47;
+      border-radius: 10px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .thinking-stream {
+      color: #70809b;
+      font-style: italic;
+    }
+
+    .content-stream {
+      color: #e2e8f0;
+    }
+
+    /* Gift Cards Section */
+    .gifts-section {
+      margin-top: 10px;
+    }
+
+    .gifts-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .gifts-header h2 {
+      font-size: 1.45rem;
+      font-weight: 800;
+    }
+
+    .gifts-subtitle {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .gifts-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 1200px) {
+      .gifts-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .gifts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .gift-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .gift-card:hover {
+      transform: translateY(-2px);
+      border-color: #3b507d;
+    }
+
+    .gift-card.unverified {
+      border: 2px solid var(--red);
+      background: rgba(239, 68, 68, 0.07);
+    }
+
+    .gift-top {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .gift-badges {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .audience-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(255, 107, 43, 0.18);
+      color: #fdba74;
+      border: 1px solid rgba(255, 107, 43, 0.35);
+    }
+
+    .verify-badge {
+      font-size: 0.73rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .verify-ok {
+      background: rgba(34, 197, 94, 0.16);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .verify-warn {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fecaca;
+      border: 1px solid var(--red);
+    }
+
+    .gift-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .gift-store-price {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .gift-store {
+      color: var(--muted);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .gift-price {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #4ade80;
+      white-space: nowrap;
+    }
+
+    .gift-meta {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 11px;
+      font-size: 0.86rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .gift-meta div span {
+      color: var(--muted);
+    }
+
+    .gift-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      background: #1e293b;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      transition: background 0.15s ease;
+    }
+
+    .gift-link:hover {
+      background: var(--cerebras);
+      border-color: var(--cerebras);
+    }
+
+    .empty-gifts {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 32px;
+      background: var(--panel);
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Missing API keys banner -->
+    <div id="missingKeysBanner" class="alert-banner banner-missing-keys">
+      <div id="missingKeysText">Missing keys in .env</div>
+    </div>
+
+    <!-- MOCK or REPLAY banner -->
+    <div id="modeBanner" class="alert-banner"></div>
+
+    <header>
+      <div class="title-group">
+        <h1>🎄 Kimi K3.1 Pro: Cerebras vs GPU</h1>
+        <p>Live Shopify Global Catalog 5-Category Christmas Gift Picker Speed Race</p>
+      </div>
+
+      <div class="controls-bar">
+        <button id="runRaceBtn" class="btn btn-primary" type="button">
+          ▶ Run race
+        </button>
+        <button id="playReplayBtn" class="btn btn-secondary" type="button" disabled>
+          ↺ Play saved run
+        </button>
+
+        <label class="control-pill" for="thinkingToggle">
+          <span>Thinking</span>
+          <span class="switch">
+            <input id="thinkingToggle" type="checkbox" />
+            <span class="slider"></span>
+          </span>
+          <span id="thinkingStateLabel">Off</span>
+        </label>
+
+        <label class="control-pill" for="roundsSelect">
+          <span>Rounds</span>
+          <select id="roundsSelect">
+            <option value="1" selected>1</option>
+            <option value="3">3</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <!-- Shopify Step Timing Line -->
+    <div class="shopify-bar">
+      <div id="shopifyStatusText">
+        <strong>Step 1 — Shopify Global Catalog:</strong> Ready (5 parallel MCP queries: kids toy, teen desk, candle, blanket, pet toy)
+      </div>
+      <div id="shopifyCategoryPills" class="category-pills"></div>
+    </div>
+
+    <!-- Winner / Speed Ratio Banner -->
+    <div id="winnerBanner" class="winner-banner">
+      <div id="winnerHeadline" class="winner-headline"></div>
+      <div id="winnerAverages" class="winner-averages"></div>
+    </div>
+
+    <!-- Two Racing Lanes -->
+    <div class="lanes-grid">
+      <!-- Lane 1: Cerebras -->
+      <section class="lane-card lane-cerebras">
+        <div class="lane-header">
+          <div class="lane-title">
+            <div class="lane-name">⚡ <span id="cerebrasLabel">Cerebras</span></div>
+            <div><span id="cerebrasModel" class="lane-model">kimi-k3.1-pro</span></div>
+          </div>
+          <div id="cerebrasStopwatch" class="lane-stopwatch">0.00 s</div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">TTFT</div>
+            <div id="cerebrasTtft" class="metric-value">—</div>
+            <div class="metric-sub">Time to first token</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Speed</div>
+            <div id="cerebrasTokS" class="metric-value">—</div>
+            <div id="cerebrasTokensSub" class="metric-sub">tokens/sec</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Total Time</div>
+            <div id="cerebrasTotal" class="metric-value">—</div>
+            <div class="metric-sub">End-to-end stream</div>
+          </div>
+        </div>
+
+        <div id="cerebrasStatusRow" class="lane-status-row">
+          <span class="status-badge badge-idle">Idle</span>
+        </div>
+
+        <div id="cerebrasHeaders" class="ratelimit-headers">x-ratelimit-* headers: waiting for response...</div>
+
+        <div id="cerebrasStream" class="stream-box"><span id="cerebrasThinking" class="thinking-stream"></span><span id="cerebrasContent" class="content-stream"></span></div>
+      </section>
+
+      <!-- Lane 2: GPU -->
+      <section class="lane-card lane-gpu">
+        <div class="lane-header">
+          <div class="lane-title">
+            <div class="lane-name">🐢 <span id="gpuLabel">Kimi API (GPU)</span></div>
+            <div><span id="gpuModel" class="lane-model">kimi-k3.1-pro</span></div>
+          </div>
+          <div id="gpuStopwatch" class="lane-stopwatch">0.00 s</div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">TTFT</div>
+            <div id="gpuTtft" class="metric-value">—</div>
+            <div class="metric-sub">Time to first token</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Speed</div>
+            <div id="gpuTokS" class="metric-value">—</div>
+            <div id="gpuTokensSub" class="metric-sub">tokens/sec</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Total Time</div>
+            <div id="gpuTotal" class="metric-value">—</div>
+            <div class="metric-sub">End-to-end stream</div>
+          </div>
+        </div>
+
+        <div id="gpuStatusRow" class="lane-status-row">
+          <span class="status-badge badge-idle">Idle</span>
+        </div>
+
+        <div id="gpuHeaders" class="ratelimit-headers">x-ratelimit-* headers: waiting for response...</div>
+
+        <div id="gpuStream" class="stream-box"><span id="gpuThinking" class="thinking-stream"></span><span id="gpuContent" class="content-stream"></span></div>
+      </section>
+    </div>
+
+    <!-- 5 Gift Cards Section -->
+    <section class="gifts-section">
+      <div class="gifts-header">
+        <h2>🎁 Selected Christmas Gifts (Cerebras Result)</h2>
+        <div id="giftsVerificationSummary" class="gifts-subtitle">5 categories verified against live Shopify Global Catalog URLs</div>
+      </div>
+      <div id="giftsGrid" class="gifts-grid">
+        <div class="empty-gifts">Click <strong>Run race</strong> or <strong>Play saved run</strong> to pick 5 Christmas gifts from Shopify Global Catalog.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const els = {
+      missingKeysBanner: document.getElementById('missingKeysBanner'),
+      missingKeysText: document.getElementById('missingKeysText'),
+      modeBanner: document.getElementById('modeBanner'),
+      runRaceBtn: document.getElementById('runRaceBtn'),
+      playReplayBtn: document.getElementById('playReplayBtn'),
+      thinkingToggle: document.getElementById('thinkingToggle'),
+      thinkingStateLabel: document.getElementById('thinkingStateLabel'),
+      roundsSelect: document.getElementById('roundsSelect'),
+      shopifyStatusText: document.getElementById('shopifyStatusText'),
+      shopifyCategoryPills: document.getElementById('shopifyCategoryPills'),
+      winnerBanner: document.getElementById('winnerBanner'),
+      winnerHeadline: document.getElementById('winnerHeadline'),
+      winnerAverages: document.getElementById('winnerAverages'),
+      giftsGrid: document.getElementById('giftsGrid'),
+      giftsVerificationSummary: document.getElementById('giftsVerificationSummary'),
+      lanes: {
+        cerebras: {
+          label: document.getElementById('cerebrasLabel'),
+          model: document.getElementById('cerebrasModel'),
+          stopwatch: document.getElementById('cerebrasStopwatch'),
+          ttft: document.getElementById('cerebrasTtft'),
+          tokS: document.getElementById('cerebrasTokS'),
+          tokensSub: document.getElementById('cerebrasTokensSub'),
+          total: document.getElementById('cerebrasTotal'),
+          statusRow: document.getElementById('cerebrasStatusRow'),
+          headers: document.getElementById('cerebrasHeaders'),
+          streamBox: document.getElementById('cerebrasStream'),
+          thinking: document.getElementById('cerebrasThinking'),
+          content: document.getElementById('cerebrasContent')
+        },
+        gpu: {
+          label: document.getElementById('gpuLabel'),
+          model: document.getElementById('gpuModel'),
+          stopwatch: document.getElementById('gpuStopwatch'),
+          ttft: document.getElementById('gpuTtft'),
+          tokS: document.getElementById('gpuTokS'),
+          tokensSub: document.getElementById('gpuTokensSub'),
+          total: document.getElementById('gpuTotal'),
+          statusRow: document.getElementById('gpuStatusRow'),
+          headers: document.getElementById('gpuHeaders'),
+          streamBox: document.getElementById('gpuStream'),
+          thinking: document.getElementById('gpuThinking'),
+          content: document.getElementById('gpuContent')
+        }
+      }
+    };
+
+    let activeEventSource = null;
+    let serverMockActive = false;
+    const laneTimers = {
+      cerebras: { intervalId: null, startPerf: 0, notices: [], retryBadge: null },
+      gpu: { intervalId: null, startPerf: 0, notices: [], retryBadge: null }
+    };
+
+    els.thinkingToggle.addEventListener('change', () => {
+      els.thinkingStateLabel.textContent = els.thinkingToggle.checked ? 'On' : 'Off';
+    });
+
+    function setModeBanner(mode, savedAt) {
+      els.modeBanner.className = 'alert-banner';
+      if (mode === 'mock') {
+        els.modeBanner.textContent = '⚠ MOCK DATA — Simulated Model Stream Using Live Shopify Results';
+        els.modeBanner.classList.add('visible', 'banner-mode-mock');
+      } else if (mode === 'replay') {
+        const formattedTime = savedAt ? new Date(savedAt).toLocaleString() : 'saved timestamp';
+        els.modeBanner.textContent = `↺ REPLAY of real run at ${formattedTime}`;
+        els.modeBanner.classList.add('visible', 'banner-mode-replay');
+      } else if (serverMockActive) {
+        els.modeBanner.textContent = '⚠ MOCK DATA';
+        els.modeBanner.classList.add('visible', 'banner-mode-mock');
+      } else {
+        els.modeBanner.textContent = '';
+      }
+    }
+
+    function startLaneStopwatch(laneId) {
+      stopLaneStopwatch(laneId);
+      const st = laneTimers[laneId];
+      const ui = els.lanes[laneId];
+      st.startPerf = performance.now();
+      ui.stopwatch.textContent = '0.00 s';
+      st.intervalId = setInterval(() => {
+        const elapsedSec = (performance.now() - st.startPerf) / 1000;
+        ui.stopwatch.textContent = `${elapsedSec.toFixed(2)} s`;
+      }, 30);
+    }
+
+    function stopLaneStopwatch(laneId, finalMs = null) {
+      const st = laneTimers[laneId];
+      const ui = els.lanes[laneId];
+      if (st.intervalId) {
+        clearInterval(st.intervalId);
+        st.intervalId = null;
+      }
+      if (typeof finalMs === 'number') {
+        ui.stopwatch.textContent = `${(finalMs / 1000).toFixed(2)} s`;
+      }
+    }
+
+    function renderLaneStatuses(laneId, mainBadgeHtml) {
+      const st = laneTimers[laneId];
+      const ui = els.lanes[laneId];
+      const parts = [mainBadgeHtml];
+      if (st.retryBadge) parts.push(st.retryBadge);
+      for (const notice of st.notices) {
+        parts.push(`<span class="status-badge badge-notice">${escapeHtml(notice)}</span>`);
+      }
+      ui.statusRow.innerHTML = parts.join('');
+    }
+
+    function resetLaneUI(laneId) {
+      stopLaneStopwatch(laneId, 0);
+      laneTimers[laneId].notices = [];
+      laneTimers[laneId].retryBadge = null;
+      const ui = els.lanes[laneId];
+      ui.ttft.textContent = '—';
+      ui.tokS.textContent = '—';
+      ui.tokensSub.textContent = 'tokens/sec';
+      ui.total.textContent = '—';
+      ui.thinking.textContent = '';
+      ui.content.textContent = '';
+      ui.headers.textContent = 'x-ratelimit-* headers: waiting for response...';
+      renderLaneStatuses(laneId, '<span class="status-badge badge-idle">Waiting...</span>');
+    }
+
+    function formatHeadersText(headersObj) {
+      const keys = Object.keys(headersObj || {});
+      if (keys.length === 0) {
+        return 'x-ratelimit-* headers: none returned by provider';
+      }
+      return keys.map(k => `${k}: ${headersObj[k]}`).join('  |  ');
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderGiftCards(gifts, sourceLabel = 'Cerebras') {
+      if (!Array.isArray(gifts) || gifts.length === 0) {
+        els.giftsGrid.innerHTML = `<div class="empty-gifts">No valid gift cards parsed from ${escapeHtml(sourceLabel)} output.</div>`;
+        return;
+      }
+
+      const categoryNames = ['kids toy', 'teen desk', 'candle', 'blanket', 'pet toy'];
+      let verifiedCount = 0;
+      let totalNonNull = 0;
+
+      const cardsHtml = gifts.map((gift, idx) => {
+        const catName = categoryNames[idx] || `Category ${idx + 1}`;
+        if (!gift) {
+          return `
+            <div class="gift-card">
+              <div class="gift-top">
+                <div class="gift-badges">
+                  <span class="audience-tag">${escapeHtml(catName)}</span>
+                </div>
+                <div class="gift-name">No product found</div>
+                <div class="gift-store-price">
+                  <span class="gift-store">Category returned empty</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        totalNonNull += 1;
+        const verified = Boolean(gift.url_verified);
+        if (verified) verifiedCount += 1;
+
+        const priceDisplay = typeof gift.price_aud === 'number'
+          ? `$${gift.price_aud.toFixed(2)} AUD`
+          : 'Non-AUD (null)';
+
+        const badgeHtml = verified
+          ? '<span class="verify-badge verify-ok">✓ Catalog URL</span>'
+          : '<span class="verify-badge verify-warn">⚠ Not from catalog</span>';
+
+        const safeUrl = gift.url && /^https?:\/\//i.test(gift.url) ? gift.url : '#';
+
+        return `
+          <div class="gift-card ${verified ? '' : 'unverified'}">
+            <div class="gift-top">
+              <div class="gift-badges">
+                <span class="audience-tag">${escapeHtml(gift.audience || catName)}</span>
+                ${badgeHtml}
+              </div>
+              <div class="gift-name" title="${escapeHtml(gift.name)}">${escapeHtml(gift.name || 'Untitled Gift')}</div>
+              <div class="gift-store-price">
+                <span class="gift-store" title="${escapeHtml(gift.store)}">${escapeHtml(gift.store || 'Unknown Store')}</span>
+                <span class="gift-price">${escapeHtml(priceDisplay)}</span>
+              </div>
+              <div class="gift-meta">
+                <div><span>Desc:</span> <strong>${escapeHtml(gift.description || '—')}</strong></div>
+                <div><span>Why:</span> <strong>${escapeHtml(gift.reason || '—')}</strong></div>
+              </div>
+            </div>
+            <a class="gift-link" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">
+              View product ↗
+            </a>
+          </div>
+        `;
+      }).join('');
+
+      els.giftsGrid.innerHTML = cardsHtml;
+      els.giftsVerificationSummary.textContent =
+        `${verifiedCount}/${totalNonNull} gift URLs verified against Shopify Global Catalog (${sourceLabel} result)`;
+    }
+
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+
+        if (data.labels?.cerebras) els.lanes.cerebras.label.textContent = data.labels.cerebras;
+        if (data.labels?.gpu) els.lanes.gpu.label.textContent = data.labels.gpu;
+        els.lanes.cerebras.model.textContent = data.models?.cerebras || '(set CEREBRAS_MODEL in .env)';
+        els.lanes.gpu.model.textContent = data.models?.gpu || 'kimi-k3.1-pro';
+
+        serverMockActive = Boolean(data.mock);
+        if (serverMockActive) {
+          setModeBanner('mock');
+        }
+
+        els.playReplayBtn.disabled = !data.replayExists;
+        if (data.replayExists && data.replaySavedAt) {
+          els.playReplayBtn.title = `Saved run from ${new Date(data.replaySavedAt).toLocaleString()}`;
+        }
+
+        if (Array.isArray(data.missing) && data.missing.length > 0 && !data.mock) {
+          els.missingKeysBanner.classList.add('visible');
+          els.missingKeysText.textContent =
+            `Missing configuration in .env: please add ${data.missing.join(', ')} (or set MOCK=1 for UI testing, or click "Play saved run").`;
+        } else {
+          els.missingKeysBanner.classList.remove('visible');
+        }
+      } catch (err) {
+        console.error('Health check failed:', err);
+      }
+    }
+
+    function startStream(url) {
+      if (activeEventSource) {
+        activeEventSource.close();
+        activeEventSource = null;
+      }
+
+      els.runRaceBtn.disabled = true;
+      els.playReplayBtn.disabled = true;
+      els.winnerBanner.classList.remove('visible');
+      els.winnerHeadline.textContent = '';
+      els.winnerAverages.textContent = '';
+
+      resetLaneUI('cerebras');
+      resetLaneUI('gpu');
+
+      const es = new EventSource(url);
+      activeEventSource = es;
+
+      es.addEventListener('meta', e => {
+        const data = JSON.parse(e.data);
+        setModeBanner(data.mode, data.savedAt);
+        if (data.models?.cerebras) els.lanes.cerebras.model.textContent = data.models.cerebras;
+        if (data.models?.gpu) els.lanes.gpu.model.textContent = data.models.gpu;
+        if (data.labels?.cerebras) els.lanes.cerebras.label.textContent = data.labels.cerebras;
+        if (data.labels?.gpu) els.lanes.gpu.label.textContent = data.labels.gpu;
+      });
+
+      es.addEventListener('shopify_start', () => {
+        els.shopifyStatusText.innerHTML = '<strong>Step 1 — Shopify Global Catalog:</strong> Searching 5 categories in parallel...';
+        els.shopifyCategoryPills.innerHTML = '';
+      });
+
+      es.addEventListener('shopify', e => {
+        const data = JSON.parse(e.data);
+        els.shopifyStatusText.innerHTML =
+          `<strong>Step 1 — Shopify Global Catalog:</strong> 5 parallel searches completed in <strong>${data.ms} ms</strong> (${data.totalItems} products found — excluded from lane timers)`;
+        if (Array.isArray(data.counts)) {
+          els.shopifyCategoryPills.innerHTML = data.counts.map(c =>
+            `<span class="cat-pill">${escapeHtml(c.category)}: ${c.count}${c.retriedWithoutFilter ? ' (unfiltered retry)' : ''}</span>`
+          ).join('');
+        }
+      });
+
+      es.addEventListener('round_start', e => {
+        const data = JSON.parse(e.data);
+        if (data.rounds > 1) {
+          resetLaneUI('cerebras');
+          resetLaneUI('gpu');
+        }
+      });
+
+      es.addEventListener('lane_start', e => {
+        const data = JSON.parse(e.data);
+        const laneId = data.lane;
+        const ui = els.lanes[laneId];
+        if (!ui) return;
+
+        ui.thinking.textContent = '';
+        ui.content.textContent = '';
+        ui.ttft.textContent = '—';
+        ui.tokS.textContent = '—';
+        ui.total.textContent = '—';
+
+        if (data.retries > 0) {
+          const waitedSec = (data.waited_ms / 1000).toFixed(1).replace(/\.0$/, '');
+          laneTimers[laneId].retryBadge =
+            `<span class="status-badge badge-retry">rate-limited, retried ${data.retries}× (waited ${waitedSec} s)</span>`;
+        }
+
+        // Start clock fresh on this attempt
+        startLaneStopwatch(laneId);
+        const roundTag = data.round ? `Round ${data.round}: ` : '';
+        renderLaneStatuses(laneId, `<span class="status-badge badge-running">${roundTag}Streaming...</span>`);
+      });
+
+      es.addEventListener('lane_headers', e => {
+        const data = JSON.parse(e.data);
+        const ui = els.lanes[data.lane];
+        if (!ui) return;
+        ui.headers.textContent = formatHeadersText(data.headers);
+      });
+
+      es.addEventListener('lane_notice', e => {
+        const data = JSON.parse(e.data);
+        const laneId = data.lane;
+        if (!laneTimers[laneId]) return;
+        if (!laneTimers[laneId].notices.includes(data.notice)) {
+          laneTimers[laneId].notices.push(data.notice);
+        }
+        renderLaneStatuses(laneId, '<span class="status-badge badge-running">Retrying without thinking parameter...</span>');
+      });
+
+      es.addEventListener('lane_retry', e => {
+        const data = JSON.parse(e.data);
+        const laneId = data.lane;
+        const ui = els.lanes[laneId];
+        if (!ui) return;
+
+        // Pause and reset stopwatch during 429 backoff wait so wait time is not counted
+        stopLaneStopwatch(laneId, 0);
+        if (data.headers && Object.keys(data.headers).length > 0) {
+          ui.headers.textContent = formatHeadersText(data.headers);
+        }
+        const waitedSec = (data.waited_ms / 1000).toFixed(1).replace(/\.0$/, '');
+        laneTimers[laneId].retryBadge =
+          `<span class="status-badge badge-retry">rate-limited, retried ${data.retries}× (waited ${waitedSec} s)</span>`;
+        renderLaneStatuses(laneId, `<span class="status-badge badge-retry">${escapeHtml(data.message)}</span>`);
+      });
+
+      es.addEventListener('lane_delta', e => {
+        const data = JSON.parse(e.data);
+        const laneId = data.lane;
+        const ui = els.lanes[laneId];
+        if (!ui) return;
+
+        if (typeof data.ttft_ms === 'number') {
+          ui.ttft.textContent = `${data.ttft_ms} ms`;
+        }
+
+        if (data.kind === 'reasoning') {
+          ui.thinking.textContent += data.text;
+        } else {
+          ui.content.textContent += data.text;
+        }
+        ui.streamBox.scrollTop = ui.streamBox.scrollHeight;
+      });
+
+      es.addEventListener('lane_done', e => {
+        const data = JSON.parse(e.data);
+        const laneId = data.lane;
+        const ui = els.lanes[laneId];
+        if (!ui) return;
+
+        stopLaneStopwatch(laneId, data.total_ms);
+        ui.ttft.textContent = `${data.ttft_ms} ms`;
+        ui.tokS.textContent = `${data.tok_s} tok/s`;
+
+        let tokDetails = `${data.tokens} tok`;
+        if (data.reasoning_tokens > 0) {
+          tokDetails += ` (${data.reasoning_tokens} reasoning)`;
+        }
+        if (data.tokens_estimated) {
+          tokDetails += ' (est)';
+        }
+        ui.tokensSub.textContent = tokDetails;
+        ui.total.textContent = `${(data.total_ms / 1000).toFixed(2)} s (${data.total_ms} ms)`;
+
+        if (data.headers && Object.keys(data.headers).length > 0) {
+          ui.headers.textContent = formatHeadersText(data.headers);
+        }
+
+        if (data. retries > 0) {
+          const waitedSec = (data.waited_ms / 1000).toFixed(1).replace(/\.0$/, '');
+          laneTimers[laneId].retryBadge =
+            `<span class="status-badge badge-retry">rate-limited, retried ${data.retries}× (waited ${waitedSec} s)</span>`;
+        }
+
+        if (data.thinkingUnsupported && !laneTimers[laneId].notices.includes('thinking setting not supported')) {
+          laneTimers[laneId].notices.push('thinking setting not supported');
+        }
+
+        const jsonBadge = data.valid_json
+          ? '<span class="status-badge badge-done">✓ Done · Valid JSON</span>'
+          : '<span class="status-badge badge-error">Done · Invalid JSON</span>';
+        renderLaneStatuses(laneId, jsonBadge);
+
+        if (laneId === 'cerebras' && Array.isArray(data.gifts) && data.gifts.length > 0) {
+          renderGiftCards(data.gifts, 'Cerebras');
+        }
+      });
+
+      es.addEventListener('lane_error', e => {
+        const data = JSON.parse(e.data);
+        const laneId = data.lane;
+        const ui = els.lanes[laneId];
+        if (!ui) return;
+
+        stopLaneStopwatch(laneId);
+        if (data.headers && Object.keys(data.headers).length > 0) {
+          ui.headers.textContent = formatHeadersText(data.headers);
+        }
+
+        if (data.rateLimited) {
+          const waitedSec = ((data.waited_ms || 0) / 1000).toFixed(1).replace(/\.0$/, '');
+          laneTimers[laneId].retryBadge =
+            `<span class="status-badge badge-retry">rate-limited, retried ${data.retries || 3}× (waited ${waitedSec} s)</span>`;
+          renderLaneStatuses(laneId, '<span class="status-badge badge-error">rate-limited</span>');
+        } else {
+          renderLaneStatuses(laneId, `<span class="status-badge badge-error">${escapeHtml(data.error || 'Error')}</span>`);
+        }
+      });
+
+      es.addEventListener('round_done', e => {
+        const data = JSON.parse(e.data);
+        els.winnerBanner.classList.add('visible');
+        els.winnerHeadline.textContent = data.banner || '';
+        if (
+          (!data.cerebras?.ok || !Array.isArray(data.cerebras?.gifts) || data.cerebras.gifts.length === 0) &&
+          data.gpu?.ok &&
+          Array.isArray(data.gpu?.gifts) &&
+          data.gpu.gifts.length > 0
+        ) {
+          renderGiftCards(data.gpu.gifts, 'GPU fallback');
+        }
+      });
+
+      es.addEventListener('summary', e => {
+        const data = JSON.parse(e.data);
+        if (data.rounds > 1 && data.averages) {
+          const avg = data.averages;
+          if (avg.speedup && avg.cerebras_total_ms && avg.gpu_total_ms) {
+            const cSec = (avg.cerebras_total_ms / 1000).toFixed(2);
+            const gSec = (avg.gpu_total_ms / 1000).toFixed(2);
+            els.winnerHeadline.textContent =
+              `Average over ${data.validComparisonRounds} rounds: Cerebras was ${avg.speedup}× faster (${cSec} s vs ${gSec} s)`;
+            els.winnerAverages.textContent =
+              `Avg TTFT: ${avg.cerebras_ttft_ms} ms vs ${avg.gpu_ttft_ms} ms  ·  Avg Speed: ${avg.cerebras_tok_s} tok/s vs ${avg.gpu_tok_s} tok/s`;
+          }
+        }
+        es.close();
+        activeEventSource = null;
+        els.runRaceBtn.disabled = false;
+        checkHealth();
+      });
+
+      es.addEventListener('race_error', e => {
+        const data = JSON.parse(e.data);
+        els.winnerBanner.classList.add('visible');
+        els.winnerHeadline.textContent = data.error || 'Race failed';
+        es.close();
+        activeEventSource = null;
+        els.runRaceBtn.disabled = false;
+        checkHealth();
+      });
+
+      es.onerror = () => {
+        stopLaneStopwatch('cerebras');
+        stopLaneStopwatch('gpu');
+        es.close();
+        activeEventSource = null;
+        els.runRaceBtn.disabled = false;
+        checkHealth();
+      };
+    }
+
+    els.runRaceBtn.addEventListener('click', () => {
+      const thinking = els.thinkingToggle.checked ? 'on' : 'off';
+      const rounds = els.roundsSelect.value || '1';
+      startStream(`/api/race?thinking=${encodeURIComponent(thinking)}&rounds=${encodeURIComponent(rounds)}`);
+    });
+
+    els.playReplayBtn.addEventListener('click', () => {
+      startStream('/api/race?replay=1');
+    });
+
+    checkHealth();
+  </script>
+</body>
+</html>

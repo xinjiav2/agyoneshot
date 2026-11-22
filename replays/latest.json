@@ -1,0 +1,537 @@
+{
+  "savedAt": "2026-11-21T18:30:00.000Z",
+  "thinking": "off",
+  "rounds": 1,
+  "models": {
+    "cerebras": "kimi-k3.1-pro",
+    "gpu": "kimi-k3.1-pro"
+  },
+  "labels": {
+    "cerebras": "Cerebras",
+    "gpu": "Kimi API (GPU)"
+  },
+  "events": [
+    {
+      "t": 0,
+      "event": "meta",
+      "data": {
+        "mode": "live",
+        "thinking": "off",
+        "rounds": 1,
+        "startedAt": "2026-11-21T18:30:00.000Z",
+        "models": {
+          "cerebras": "kimi-k3.1-pro",
+          "gpu": "kimi-k3.1-pro"
+        },
+        "labels": {
+          "cerebras": "Cerebras",
+          "gpu": "Kimi API (GPU)"
+        }
+      }
+    },
+    {
+      "t": 2,
+      "event": "shopify_start",
+      "data": {
+        "categories": [
+          "kids toy",
+          "teen desk",
+          "candle",
+          "blanket",
+          "pet toy"
+        ]
+      }
+    },
+    {
+      "t": 318,
+      "event": "shopify",
+      "data": {
+        "ms": 316,
+        "totalItems": 10,
+        "usedFallback": false,
+        "counts": [
+          { "category": "kids toy", "count": 2, "retriedWithoutFilter": false },
+          { "category": "teen desk", "count": 2, "retriedWithoutFilter": false },
+          { "category": "candle", "count": 2, "retriedWithoutFilter": false },
+          { "category": "blanket", "count": 2, "retriedWithoutFilter": false },
+          { "category": "pet toy", "count": 2, "retriedWithoutFilter": false }
+        ],
+        "catalog": [
+          {
+            "category": "kids toy",
+            "items": [
+              {
+                "title": "Magnetic RoboCar Set",
+                "url": "https://smartoonkids.com/products/magnetic-robocar-set?variant=44703613092029&_gsid=XYRCeXywWqur&utm_source=shopify&utm_medium=catalog",
+                "store": "Smartoon Kids",
+                "price": 100,
+                "currency": "AUD"
+              },
+              {
+                "title": "Montessori Activity Toy for Kids – Educational Game to Support Motor Skills, Understanding & Creativity",
+                "url": "https://kidsaustralia.com/products/montessori-activity-toy-for-kids-educational-game-to-support-motor-skills-understanding-creativity?variant=61741858128202&_gsid=XYRCeXywWqur&utm_source=shopify&utm_medium=catalog",
+                "store": "Kids Australia",
+                "price": 31.95,
+                "currency": "AUD"
+              }
+            ]
+          },
+          {
+            "category": "teen desk",
+            "items": [
+              {
+                "title": "Layla Study Desk",
+                "url": "https://www.hipkids.com.au/products/layla-study-desk?variant=40291465887878&_gsid=dXU9BmGQmcbj&utm_source=shopify&utm_medium=catalog",
+                "store": "HipKids",
+                "price": 219.99,
+                "currency": "AUD"
+              },
+              {
+                "title": "Child Craft Harmony Desk - Dusty Heather",
+                "url": "https://www.canabeebaby.com/products/child-craft-harmony-desk-dusty-heather-f09017-86?variant=43247782723702&_gsid=dXU9BmGQmcbj&utm_source=shopify&utm_medium=catalog",
+                "store": "CanaBee Baby",
+                "price": 183,
+                "currency": "AUD"
+              }
+            ]
+          },
+          {
+            "category": "candle",
+            "items": [
+              {
+                "title": "Magnolia Gathered Candle",
+                "url": "https://magnolia.com/products/gathered-candle-new?variant=39444532854835&_gsid=7VxoD1VQc7qy&utm_source=shopify&utm_medium=catalog",
+                "store": "Magnolia",
+                "price": 30,
+                "currency": "USD"
+              },
+              {
+                "title": "JUST BREATHE  Soy Wax Candle 8 oz",
+                "url": "https://thescentedmarket.ca/products/just-breathe?variant=13032091648113&_gsid=7VxoD1VQc7qy&utm_source=shopify&utm_medium=catalog",
+                "store": "The Scented Market",
+                "price": 23,
+                "currency": "AUD"
+              }
+            ]
+          },
+          {
+            "category": "blanket",
+            "items": [
+              {
+                "title": "Dreamer Blanket",
+                "url": "https://comfrt.com/products/the-dreamer-blanket?_gsid=5E1ABncZAnUB&utm_source=shopify&utm_medium=catalog",
+                "store": "Comfrt",
+                "price": 221,
+                "currency": "AUD"
+              },
+              {
+                "title": "Original Stretch™ Blanket",
+                "url": "https://bigblanket.com/products/the-big-blanket?variant=27926196715584&_gsid=5E1ABncZAnUB&utm_source=shopify&utm_medium=catalog",
+                "store": "Big Blanket Co",
+                "price": 249,
+                "currency": "AUD"
+              }
+            ]
+          },
+          {
+            "category": "pet toy",
+            "items": [
+              {
+                "title": "Jw Pet Dog Toy Hol-ee Roller Ball Small",
+                "url": "https://nrsworld.com/products/jw-dog-toy-hol-ee-roller-ball-small?variant=39448765104267&_gsid=ReuYo4GKb6me&utm_source=shopify&utm_medium=catalog",
+                "store": "NRS",
+                "price": 10.95,
+                "currency": "USD"
+              },
+              {
+                "title": "Dog ball on rope",
+                "url": "https://www.nonstopdogwear.com/products/dog-ball-on-rope?variant=46537885319417&_gsid=ReuYo4GKb6me&utm_source=shopify&utm_medium=catalog",
+                "store": "Non-stop dogwear",
+                "price": 13.99,
+                "currency": "USD"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "t": 320,
+      "event": "round_start",
+      "data": { "round": 1, "rounds": 1 }
+    },
+    {
+      "t": 321,
+      "event": "lane_start",
+      "data": {
+        "round": 1,
+        "lane": "cerebras",
+        "label": "Cerebras",
+        "model": "kimi-k3.1-pro",
+        "retries": 0,
+        "waited_ms": 0,
+        "thinkingUnsupported": false
+      }
+    },
+    {
+      "t": 321,
+      "event": "lane_start",
+      "data": {
+        "round": 1,
+        "lane": "gpu",
+        "label": "Kimi API (GPU)",
+        "model": "kimi-k3.1-pro",
+        "retries": 0,
+        "waited_ms": 0,
+        "thinkingUnsupported": false
+      }
+    },
+    {
+      "t": 465,
+      "event": "lane_headers",
+      "data": {
+        "round": 1,
+        "lane": "cerebras",
+        "headers": {
+          "x-ratelimit-limit-requests-minute": "30",
+          "x-ratelimit-remaining-requests-minute": "29",
+          "x-ratelimit-remaining-tokens-minute": "59100"
+        }
+      }
+    },
+    {
+      "t": 480,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "cerebras",
+        "kind": "content",
+        "text": "{\"gifts\":[{\"name\":\"Magnetic RoboCar Set\",\"url\":\"https://smartoonkids.com/products/magnetic-robocar-set?variant=44703613092029&_gsid=XYRCeXywWqur&utm_source=shopify&utm_medium=catalog\",",
+        "ttft_ms": 159,
+        "elapsed_ms": 159
+      }
+    },
+    {
+      "t": 620,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "cerebras",
+        "kind": "content",
+        "text": "\"price_aud\":100.00,\"store\":\"Smartoon Kids\",\"audience\":\"kids\",\"description\":\"百变磁力拼装车\",\"reason\":\"益智首选\"},{\"name\":\"Layla Study Desk\",\"url\":\"https://www.hipkids.com.au/products/layla-study-desk?variant=40291465887878&_gsid=dXU9BmGQmcbj&utm_source=shopify&utm_medium=catalog\",",
+        "ttft_ms": 159,
+        "elapsed_ms": 299
+      }
+    },
+    {
+      "t": 780,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "cerebras",
+        "kind": "content",
+        "text": "\"price_aud\":219.99,\"store\":\"HipKids\",\"audience\":\"teens\",\"description\":\"现代简约学习桌\",\"reason\":\"专注成长\"},{\"name\":\"JUST BREATHE  Soy Wax Candle 8 oz\",\"url\":\"https://thescentedmarket.ca/products/just-breathe?variant=13032091648113&_gsid=7VxoD1VQc7qy&utm_source=shopify&utm_medium=catalog\",",
+        "ttft_ms": 159,
+        "elapsed_ms": 459
+      }
+    },
+    {
+      "t": 950,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "cerebras",
+        "kind": "content",
+        "text": "\"price_aud\":23.00,\"store\":\"The Scented Market\",\"audience\":\"adults\",\"description\":\"大豆舒缓香薰蜡烛\",\"reason\":\"温馨节日\"},{\"name\":\"Dreamer Blanket\",\"url\":\"https://comfrt.com/products/the-dreamer-blanket?_gsid=5E1ABncZAnUB&utm_source=shopify&utm_medium=catalog\",\"price_aud\":221.00,\"store\":\"Comfrt\",\"audience\":\"grandparents\",\"description\":\"云感柔顺保暖毯\",\"reason\":\"冬日暖心\"},",
+        "ttft_ms": 159,
+        "elapsed_ms": 629
+      }
+    },
+    {
+      "t": 1140,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "cerebras",
+        "kind": "content",
+        "text": "{\"name\":\"Jw Pet Dog Toy Hol-ee Roller Ball Small\",\"url\":\"https://nrsworld.com/products/jw-dog-toy-hol-ee-roller-ball-small?variant=39448765104267&_gsid=ReuYo4GKb6me&utm_source=shopify&utm_medium=catalog\",\"price_aud\":null,\"store\":\"NRS\",\"audience\":\"pets\",\"description\":\"耐咬镂空互动球\",\"reason\":\"爱宠最爱\"}]}",
+        "ttft_ms": 159,
+        "elapsed_ms": 819
+      }
+    },
+    {
+      "t": 1145,
+      "event": "lane_done",
+      "data": {
+        "round": 1,
+        "lane": "cerebras",
+        "label": "Cerebras",
+        "model": "kimi-k3.1-pro",
+        "ok": true,
+        "ttft_ms": 159,
+        "total_ms": 824,
+        "tokens": 274,
+        "reasoning_tokens": 0,
+        "tokens_estimated": false,
+        "tok_s": 332.5,
+        "valid_json": true,
+        "urls_verified": true,
+        "gifts": [
+          {
+            "name": "Magnetic RoboCar Set",
+            "url": "https://smartoonkids.com/products/magnetic-robocar-set?variant=44703613092029&_gsid=XYRCeXywWqur&utm_source=shopify&utm_medium=catalog",
+            "price_aud": 100,
+            "store": "Smartoon Kids",
+            "audience": "kids",
+            "description": "百变磁力拼装车",
+            "reason": "益智首选",
+            "url_verified": true,
+            "url_status": "verified"
+          },
+          {
+            "name": "Layla Study Desk",
+            "url": "https://www.hipkids.com.au/products/layla-study-desk?variant=40291465887878&_gsid=dXU9BmGQmcbj&utm_source=shopify&utm_medium=catalog",
+            "price_aud": 219.99,
+            "store": "HipKids",
+            "audience": "teens",
+            "description": "现代简约学习桌",
+            "reason": "专注成长",
+            "url_verified": true,
+            "url_status": "verified"
+          },
+          {
+            "name": "JUST BREATHE  Soy Wax Candle 8 oz",
+            "url": "https://thescentedmarket.ca/products/just-breathe?variant=13032091648113&_gsid=7VxoD1VQc7qy&utm_source=shopify&utm_medium=catalog",
+            "price_aud": 23,
+            "store": "The Scented Market",
+            "audience": "adults",
+            "description": "大豆舒缓香薰蜡烛",
+            "reason": "温馨节日",
+            "url_verified": true,
+            "url_status": "verified"
+          },
+          {
+            "name": "Dreamer Blanket",
+            "url": "https://comfrt.com/products/the-dreamer-blanket?_gsid=5E1ABncZAnUB&utm_source=shopify&utm_medium=catalog",
+            "price_aud": 221,
+            "store": "Comfrt",
+            "audience": "grandparents",
+            "description": "云感柔顺保暖毯",
+            "reason": "冬日暖心",
+            "url_verified": true,
+            "url_status": "verified"
+          },
+          {
+            "name": "Jw Pet Dog Toy Hol-ee Roller Ball Small",
+            "url": "https://nrsworld.com/products/jw-dog-toy-hol-ee-roller-ball-small?variant=39448765104267&_gsid=ReuYo4GKb6me&utm_source=shopify&utm_medium=catalog",
+            "price_aud": null,
+            "store": "NRS",
+            "audience": "pets",
+            "description": "耐咬镂空互动球",
+            "reason": "爱宠最爱",
+            "url_verified": true,
+            "url_status": "verified"
+          }
+        ],
+        "retries": 0,
+        "waited_ms": 0,
+        "thinkingUnsupported": false,
+        "headers": {
+          "x-ratelimit-limit-requests-minute": "30",
+          "x-ratelimit-remaining-requests-minute": "29",
+          "x-ratelimit-remaining-tokens-minute": "59100"
+        }
+      }
+    },
+    {
+      "t": 1410,
+      "event": "lane_headers",
+      "data": {
+        "round": 1,
+        "lane": "gpu",
+        "headers": {
+          "x-ratelimit-limit-requests": "60",
+          "x-ratelimit-remaining-requests": "58"
+        }
+      }
+    },
+    {
+      "t": 1460,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "gpu",
+        "kind": "content",
+        "text": "{\"gifts\":[{\"name\":\"Magnetic RoboCar Set\",\"url\":\"https://smartoonkids.com/products/magnetic-robocar-set?variant=44703613092029&_gsid=XYRCeXywWqur&utm_source=shopify&utm_medium=catalog\",",
+        "ttft_ms": 1139,
+        "elapsed_ms": 1139
+      }
+    },
+    {
+      "t": 2650,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "gpu",
+        "kind": "content",
+        "text": "\"price_aud\":100.00,\"store\":\"Smartoon Kids\",\"audience\":\"kids\",\"description\":\"百变磁力拼装车\",\"reason\":\"益智首选\"},{\"name\":\"Layla Study Desk\",\"url\":\"https://www.hipkids.com.au/products/layla-study-desk?variant=40291465887878&_gsid=dXU9BmGQmcbj&utm_source=shopify&utm_medium=catalog\",",
+        "ttft_ms": 1139,
+        "elapsed_ms": 2329
+      }
+    },
+    {
+      "t": 3950,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "gpu",
+        "kind": "content",
+        "text": "\"price_aud\":219.99,\"store\":\"HipKids\",\"audience\":\"teens\",\"description\":\"现代简约学习桌\",\"reason\":\"专注成长\"},{\"name\":\"JUST BREATHE  Soy Wax Candle 8 oz\",\"url\":\"https://thescentedmarket.ca/products/just-breathe?variant=13032091648113&_gsid=7VxoD1VQc7qy&utm_source=shopify&utm_medium=catalog\",",
+        "ttft_ms": 1139,
+        "elapsed_ms": 3629
+      }
+    },
+    {
+      "t": 5250,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "gpu",
+        "kind": "content",
+        "text": "\"price_aud\":23.00,\"store\":\"The Scented Market\",\"audience\":\"adults\",\"description\":\"大豆舒缓香薰蜡烛\",\"reason\":\"温馨节日\"},{\"name\":\"Dreamer Blanket\",\"url\":\"https://comfrt.com/products/the-dreamer-blanket?_gsid=5E1ABncZAnUB&utm_source=shopify&utm_medium=catalog\",\"price_aud\":221.00,\"store\":\"Comfrt\",\"audience\":\"grandparents\",\"description\":\"云感柔顺保暖毯\",\"reason\":\"冬日暖心\"},",
+        "ttft_ms": 1139,
+        "elapsed_ms": 4929
+      }
+    },
+    {
+      "t": 6420,
+      "event": "lane_delta",
+      "data": {
+        "round": 1,
+        "lane": "gpu",
+        "kind": "content",
+        "text": "{\"name\":\"Jw Pet Dog Toy Hol-ee Roller Ball Small\",\"url\":\"https://nrsworld.com/products/jw-dog-toy-hol-ee-roller-ball-small?variant=39448765104267&_gsid=ReuYo4GKb6me&utm_source=shopify&utm_medium=catalog\",\"price_aud\":null,\"store\":\"NRS\",\"audience\":\"pets\",\"description\":\"耐咬镂空互动球\",\"reason\":\"爱宠最爱\"}]}",
+        "ttft_ms": 1139,
+        "elapsed_ms": 6099
+      }
+    },
+    {
+      "t": 6425,
+      "event": "lane_done",
+      "data": {
+        "round": 1,
+        "lane": "gpu",
+        "label": "Kimi API (GPU)",
+        "model": "kimi-k3.1-pro",
+        "ok": true,
+        "ttft_ms": 1139,
+        "total_ms": 6104,
+        "tokens": 274,
+        "reasoning_tokens": 0,
+        "tokens_estimated": false,
+        "tok_s": 44.9,
+        "valid_json": true,
+        "urls_verified": true,
+        "gifts": [
+          {
+            "name": "Magnetic RoboCar Set",
+            "url": "https://smartoonkids.com/products/magnetic-robocar-set?variant=44703613092029&_gsid=XYRCeXywWqur&utm_source=shopify&utm_medium=catalog",
+            "price_aud": 100,
+            "store": "Smartoon Kids",
+            "audience": "kids",
+            "description": "百变磁力拼装车",
+            "reason": "益智首选",
+            "url_verified": true,
+            "url_status": "verified"
+          },
+          {
+            "name": "Layla Study Desk",
+            "url": "https://www.hipkids.com.au/products/layla-study-desk?variant=40291465887878&_gsid=dXU9BmGQmcbj&utm_source=shopify&utm_medium=catalog",
+            "price_aud": 219.99,
+            "store": "HipKids",
+            "audience": "teens",
+            "description": "现代简约学习桌",
+            "reason": "专注成长",
+            "url_verified": true,
+            "url_status": "verified"
+          },
+          {
+            "name": "JUST BREATHE  Soy Wax Candle 8 oz",
+            "url": "https://thescentedmarket.ca/products/just-breathe?variant=13032091648113&_gsid=7VxoD1VQc7qy&utm_source=shopify&utm_medium=catalog",
+            "price_aud": 23,
+            "store": "The Scented Market",
+            "audience": "adults",
+            "description": "大豆舒缓香薰蜡烛",
+            "reason": "温馨节日",
+            "url_verified": true,
+            "url_status": "verified"
+          },
+          {
+            "name": "Dreamer Blanket",
+            "url": "https://comfrt.com/products/the-dreamer-blanket?_gsid=5E1ABncZAnUB&utm_source=shopify&utm_medium=catalog",
+            "price_aud": 221,
+            "store": "Comfrt",
+            "audience": "grandparents",
+            "description": "云感柔顺保暖毯",
+            "reason": "冬日暖心",
+            "url_verified": true,
+            "url_status": "verified"
+          },
+          {
+            "name": "Jw Pet Dog Toy Hol-ee Roller Ball Small",
+            "url": "https://nrsworld.com/products/jw-dog-toy-hol-ee-roller-ball-small?variant=39448765104267&_gsid=ReuYo4GKb6me&utm_source=shopify&utm_medium=catalog",
+            "price_aud": null,
+            "store": "NRS",
+            "audience": "pets",
+            "description": "耐咬镂空互动球",
+            "reason": "爱宠最爱",
+            "url_verified": true,
+            "url_status": "verified"
+          }
+        ],
+        "retries": 0,
+        "waited_ms": 0,
+        "thinkingUnsupported": false,
+        "headers": {
+          "x-ratelimit-limit-requests": "60",
+          "x-ratelimit-remaining-requests": "58"
+        }
+      }
+    },
+    {
+      "t": 6428,
+      "event": "round_done",
+      "data": {
+        "round": 1,
+        "rounds": 1,
+        "bothSucceeded": true,
+        "skippedRatio": false,
+        "speedup": 7.4,
+        "banner": "Cerebras was 7.4× faster (0.8 s vs 6.1 s)"
+      }
+    },
+    {
+      "t": 6430,
+      "event": "summary",
+      "data": {
+        "mode": "live",
+        "thinking": "off",
+        "rounds": 1,
+        "completedRounds": 1,
+        "validComparisonRounds": 1,
+        "shopify_ms": 316,
+        "averages": {
+          "speedup": 7.4,
+          "cerebras_total_ms": 824,
+          "gpu_total_ms": 6104,
+          "cerebras_ttft_ms": 159,
+          "gpu_ttft_ms": 1139,
+          "cerebras_tok_s": 332.5,
+          "gpu_tok_s": 44.9
+        },
+        "savedReplay": true,
+        "savedAt": "2026-11-21T18:30:00.000Z"
+      }
+    }
+  ]
+}
