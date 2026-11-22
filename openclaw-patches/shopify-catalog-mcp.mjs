@@ -3,7 +3,7 @@ import fs from "node:fs";
 import readline from "node:readline";
 
 const DISK_CACHE_PATH = "/tmp/shopify-au-warm-cache.json";
-const DISK_CACHE_TTL_MS = 5 * 60 * 1000;
+const DISK_CACHE_TTL_MS = 15 * 60 * 1000;
 
 const SHOPIFY_MCP_URL = "https://catalog.shopify.com/api/ucp/mcp";
 const SHOPIFY_PROFILE_URL =

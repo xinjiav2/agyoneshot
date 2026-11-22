@@ -75,7 +75,7 @@ const testingParamsBlock = `\t\t\tlet params = builtParams;
 \t\t\t\tconst lastUserMsg = Array.isArray(params.messages) ? [...params.messages].reverse().find((m) => m?.role === "user" && !isPureCtxMsg(m)) : null;
 \t\t\t\tconst lastUserTxt = lastUserMsg ? getText(lastUserMsg.content) : "";
 \t\t\t\tif (
-\t\t\t\t\t(!params.tools?.length && /conversation\\s+(?:label|title)|short\\s+title\\s+for\\s+this\\s+conversation/i.test(_mTxt)) ||
+\t\t\t\t\t(!params.tools?.length && /(?:conversation|session)\\s+(?:label|title)|concise\\s+session\\s+title|short\\s+title\\s+for\\s+this\\s+conversation/i.test(_mTxt)) ||
 \t\t\t\t\t(!lastUserTxt.includes("search_catalog") && (String(options?.sessionId ?? "").includes("skill-workshop") || /skill-workshop-review|skill\\s+experience\\s+review|workshop\\s+skill\\s+review/i.test(_mTxt)))
 \t\t\t\t) {
 \t\t\t\t\tthrow new Error("Skipped background OpenClaw utility call on Cerebras");
