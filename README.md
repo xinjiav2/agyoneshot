@@ -27,20 +27,6 @@ High-throughput **OpenClaw** agent setup built for the **Speed Bounty**: running
 
 ---
 
-## Verified Benchmarks (`main` — AU/AUD Baseline)
-
-Measured end-to-end through `openclaw-gateway.service` on `cerebras/moonshotai-kimi-k3.1-pro-trial` (`Low`):
-
-| Run | Total Wall Time | Call 1 (`search_catalog` × 5) | Call 2 (Final JSON) | Mean / p90 (server) |
-|---|---:|---:|---:|---:|
-| **Run 1** | 7.94s | `762 tok/s` (`reason: 15`) | `1,346 tok/s` (`reason: 8`) | **`1,054 tok/s mean · 1,346 p90`** |
-| **Run 2** | 8.88s | `855 tok/s` (`reason: 10`) | `926 tok/s` (`reason: 9`) | **`891 tok/s mean · 926 p90`** |
-| **Run 3** | **3.00s** | `945 tok/s` (`reason: 10`) | **`1,500 tok/s`** (`reason: 11`) | **`1,223 tok/s mean · 1,500 p90`** |
-
-- **3-run average**: **`1,056 tok/s mean`** (peaking at **`1,500 tok/s`** in **`3.00s`** total wall time).
-
----
-
 ## Quick Start
 
 1. **Apply the OpenClaw patches and MCP server**:
@@ -55,5 +41,5 @@ Measured end-to-end through `openclaw-gateway.service` on `cerebras/moonshotai-k
 
 ## Branches
 
-- **`main`** *(recommended)*: Stable pre-USD **AU/AUD** baseline (`{name, url, store, price_aud}`, live Shopify Global Catalog fetch, `1,056`–`1,223 tok/s mean`, peak `1,500 p90`).
+- **`main`** *(recommended)*: Stable pre-USD **AU/AUD** baseline (`{name, url, store, price_aud}`, live Shopify Global Catalog fetch).
 - **`testing`**: Experimental optimizations (startup pre-warm cache, 7-key contiguous verbatim product copy, alphabetical `{limit, query, view}` schema, `tool_choice: "required"`/`"none"`, and `429` contention controls).
