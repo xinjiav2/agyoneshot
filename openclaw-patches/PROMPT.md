@@ -14,9 +14,7 @@ node openclaw-patches/apply-patches.mjs
 systemctl --user restart openclaw-gateway.service
 ```
 
-## Peak Live Prompt (Copy & Paste into `/new`)
-
-*(Uses `dog toy` for a cleaner no-variant PETstock Australia URL; `pet toy` also works identically.)*
+## Peak Live Prompt (`1,402 tok/s` mean — Copy & Paste into `/new`)
 
 ```text
 Fast Christmas gift search: immediately call search_catalog 5 times in parallel in 1 turn with these exact arguments:
@@ -24,7 +22,7 @@ Fast Christmas gift search: immediately call search_catalog 5 times in parallel 
 {"limit":1,"query":"teen desk","view":"compact"}
 {"limit":1,"query":"candle","view":"compact"}
 {"limit":1,"query":"blanket","view":"compact"}
-{"limit":1,"query":"dog toy","view":"compact"}
+{"limit":1,"query":"pet toy","view":"compact"}
 Never make a second tool call. After results arrive, output zero prose and no markdown—only one compact single-line JSON copying all 5 returned product objects verbatim into gifts:
 {"gifts":[{"name":"","url":"","price_aud":0,"store":"","audience":"","description":"","reason":""}]}
 ```
