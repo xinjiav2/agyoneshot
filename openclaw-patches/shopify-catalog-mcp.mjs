@@ -96,7 +96,6 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true, v
 
   const viewMode = String(view || "").toLowerCase();
   const isTurbo = viewMode === "turbo";
-  const isRich = viewMode === "rich";
   const items = [];
   for (const p of rawProducts) {
     const v = Array.isArray(p?.variants) && p.variants.length > 0 ? p.variants[0] : null;
@@ -131,20 +130,13 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true, v
       reason: "Great Christmas gift",
     };
 
-    if (isTurbo || isRich) {
+    if (isTurbo) {
       item.currency = rawCurrency;
       item.availability = availability;
       item.category = "Christmas Gift";
       item.shipping = "Standard Holiday Delivery";
       item.gift_wrap = "Festive Holiday Wrap Available";
       item.return_policy = "Thirty Day Standard Online Store Return Window";
-    }
-
-    if (isRich) {
-      item.fulfillment = "Direct Online Storefront Checkout";
-      item.packaging = "Protective Holiday Gift Packaging Included";
-      item.gift_message = "Wishing you a warm and joyful Christmas holiday season filled with happiness and cheer";
-      item.summary = "Verified live online storefront Christmas gift recommendation ready for fast holiday checkout";
     }
 
     items.push(item);

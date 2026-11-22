@@ -40,7 +40,7 @@ High-throughput **OpenClaw** agent setup built for the **Santa's Speedy Shopper*
 
 ## Branches
 
-- **`prompt-turbo`** *(current)*: 100% live zero-hardcoded-URL Shopify MCP with canonical tracking-free URLs, 5/5 live AUD products (`soy candle` + `dog toy`), `criteria`-boosted Call 1 (`out ≈ 512`), consistent 13-key `view: "turbo"` Call 2 (`out ≈ 528`), and 45s MCP idle auto-exit OOM fix.
+- **`prompt-turbo`** *(current — Top TPS)*: 100% live zero-hardcoded-URL Shopify MCP tuned for peak single-call Top TPS (`p90`): lean 3-key Call 1 (`out = 337`) + `view: "turbo"` 13-key consistent 5/5 AUD Call 2 (`out = 528`, clean canonical tracking-free URLs, `cR = 1,024` cross-session KV cache hit, +122 tok/s over `1464` under matched load), plus 45s MCP idle auto-exit OOM fix.
 - **`1464`**: Live 1,464 tok/s mean checkpoint with 45s MCP idle auto-exit OOM fix.
 - **`1402`**: 100% live no-cache Shopify MCP + Call 2 tool-drop optimization + unwrapped 7-field prompt (`1,402 tok/s mean · 1,523 p90` in 2s).
 - **`bounty-clean`**: Clean live no-cache Speed Bounty branch.

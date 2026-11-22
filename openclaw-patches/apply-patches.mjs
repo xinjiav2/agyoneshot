@@ -131,7 +131,7 @@ const testingParamsBlock = `\t\t\tlet params = builtParams;
 \t\t\t\t\tconst cleanedUserChars = cleanedUserMsg ? getText(cleanedUserMsg.content).length : lastUserTxt.length;
 \t\t\t\t\tconst hasCriteria = lastUserTxt.includes('"criteria"');
 \t\t\t\t\tconst maxOut = hasToolResults
-\t\t\t\t\t\t? Math.min(1400, Math.max(420, Math.ceil(toolChars / 2.8) + 96))
+\t\t\t\t\t\t? Math.min(1024, Math.max(420, Math.ceil(toolChars / 2.8) + 96))
 \t\t\t\t\t\t: Math.min(1024, Math.max(420, Math.ceil(cleanedUserChars / 2.2) + 128));
 \t\t\t\t\tparams.max_completion_tokens = maxOut;
 \t\t\t\t\tif (typeof params.max_tokens === "number") params.max_tokens = maxOut;
