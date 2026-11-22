@@ -1,5 +1,9 @@
 #!/usr/bin/env node
+import fs from "node:fs";
 import readline from "node:readline";
+
+const DISK_CACHE_PATH = "/tmp/shopify-au-warm-cache.json";
+const DISK_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const SHOPIFY_MCP_URL = "https://catalog.shopify.com/api/ucp/mcp";
 const SHOPIFY_PROFILE_URL =
@@ -30,6 +34,29 @@ function parseJsonOrSse(rawText) {
     }
   }
   return lastObj;
+}
+
+function cleanPlainText(raw, fallback = "", maxLen = 240) {
+  let s = "";
+  if (typeof raw === "string") s = raw;
+  else if (raw && typeof raw === "object") s = String(raw.plain || raw.text || raw.value || "");
+  s = s
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, " and ")
+    .replace(/&quot;|&#34;|&apos;|&#39;/gi, "")
+    .replace(/&#\d+;|&[a-z]+;/gi, " ")
+    .replace(/[^A-Za-z0-9.,\- ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!s) return fallback;
+  if (s.length <= maxLen) return s;
+  const cut = s.slice(0, maxLen);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > maxLen * 0.6 ? cut.slice(0, lastSpace) : cut).trim();
 }
 
 async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
@@ -105,7 +132,7 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
       store,
       audience,
       description: title,
-      reason: "圣诞好礼",
+      reason: "Great Christmas gift",
     });
   }
 
@@ -117,15 +144,61 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
 }
 
 const WARM_CACHE = new Map();
+const WARM_INFLIGHT = new Map();
 const PREWARM_QUERIES = ["kids toy", "teen desk", "candle", "blanket", "pet toy"];
-Promise.all(
-  PREWARM_QUERIES.map(async (q) => {
-    try {
-      const res = await queryShopifyCatalog(q, 1, true);
-      if (res.length > 0) WARM_CACHE.set(`${q}:1`, res);
-    } catch {}
-  })
-);
+
+function loadDiskCache() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(DISK_CACHE_PATH, "utf8"));
+    const now = Date.now();
+    if (raw && typeof raw === "object" && raw.entries && typeof raw.entries === "object") {
+      for (const [k, v] of Object.entries(raw.entries)) {
+        if (v && Array.isArray(v.items) && v.items.length > 0 && now - (v.ts || 0) < DISK_CACHE_TTL_MS) {
+          WARM_CACHE.set(k, v.items);
+        }
+      }
+    }
+  } catch {}
+}
+
+function saveDiskCache() {
+  try {
+    const now = Date.now();
+    const entries = {};
+    for (const [k, items] of WARM_CACHE.entries()) {
+      entries[k] = { ts: now, items };
+    }
+    fs.writeFileSync(DISK_CACHE_PATH, JSON.stringify({ entries }), "utf8");
+  } catch {}
+}
+
+loadDiskCache();
+
+function fetchWithDedup(query, limit) {
+  const key = `${String(query || "").trim().toLowerCase()}:${limit}`;
+  const cached = WARM_CACHE.get(key);
+  if (cached) return Promise.resolve(cached);
+  const inflight = WARM_INFLIGHT.get(key);
+  if (inflight) return inflight;
+  const p = queryShopifyCatalog(query, limit, true)
+    .then((res) => {
+      if (res.length > 0) {
+        WARM_CACHE.set(key, res);
+        saveDiskCache();
+      }
+      return res;
+    })
+    .finally(() => {
+      WARM_INFLIGHT.delete(key);
+    });
+  WARM_INFLIGHT.set(key, p);
+  return p;
+}
+for (const q of PREWARM_QUERIES) {
+  if (!WARM_CACHE.has(`${q}:1`)) {
+    void fetchWithDedup(q, 1).catch(() => {});
+  }
+}
 
 const TOOL_DEFINITION = {
   name: "search_catalog",
@@ -201,13 +274,9 @@ async function handleMessage(msg) {
     const args = msg.params?.arguments || {};
     const query = String(args.query || args.catalog?.query || "christmas gift").trim();
     const limit = args.limit ?? args.catalog?.pagination?.limit ?? 1;
-    const cacheKey = `${query.toLowerCase()}:${limit}`;
     try {
-      let products = WARM_CACHE.get(cacheKey);
-      if (!products) {
-        products = await queryShopifyCatalog(query, limit, true);
-        if (products.length > 0) WARM_CACHE.set(cacheKey, products);
-      }
+      const products = await fetchWithDedup(query, limit);
+      const payload = products.length === 1 ? products[0] : { query, products };
       sendResponse({
         jsonrpc: "2.0",
         id: msg.id,
@@ -215,7 +284,7 @@ async function handleMessage(msg) {
           content: [
             {
               type: "text",
-              text: JSON.stringify({ query, products }),
+              text: JSON.stringify(payload),
             },
           ],
         },

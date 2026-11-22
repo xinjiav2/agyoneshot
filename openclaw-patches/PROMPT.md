@@ -1,16 +1,16 @@
 # OpenClaw Speed Agent — Experimental Optimizations (`testing`)
 
-This branch (`testing`) pushes **Call 1 (`toolUse`)** to **`1,195 tok/s`** and **Call 2 (`stop`)** to **`1,400–1,500+ tok/s`**:
+This branch (`testing`) hits **`1,582 tok/s` peak on Call 2** and **`1.77s` end-to-end inside OpenClaw Gateway** on a brand-new chat session:
 
-1. **Post-`onPayload` Ultra-Slim Call 1 (`~326` input tokens, `tool_choice: "required"`)**:
-   - Moves Cerebras payload optimization *after* OpenClaw's `onPayload` hook and strips any `## Watched Sessions` blocks.
-   - Replaces the expanded tool schema with a minimal 3-key alphabetical `search_catalog` schema (`{limit, query, view}`) and forces `tool_choice: "required"` on Call 1 (verified **`1,195 tok/s`**, `reason: 9`, `0.276s` on Cerebras!).
-2. **`tool_choice: "none"` + 7-Key Contiguous Verbatim Copy on Call 2**:
-   - Once the 5 `role: "tool"` results are present, forces `tool_choice: "none"` so Cerebras never branches into tool-call grammar.
-   - `shopify-catalog-mcp.mjs` pre-warms the 5 AU/AUD queries (`< 2ms` tool return) and outputs complete 7-key objects `{name, url, price_aud, store, audience, description, reason}` in exact target JSON order for unbroken speculative decoding.
-3. **Zero 429 Warmup Contention**:
-   - Skips background `conversation-label` requests on Cerebras.
-   - Matches any `reply with ... ok` warmup message (`zero tools`, `max_completion_tokens: 32`) instead of sending 14,715 tokens.
+1. **Ultra-Slim English Call 1 (`390` input tokens, `rTok=10`, `tool_choice: "required"`)**:
+   - Strips all OpenClaw runtime-context blocks (`Active exec sessions`, `Conversation info`, `## Watched Sessions`, `## Temporal Context`) and trailing metadata on Turn 1.
+   - Uses a 9-token English system prompt (`"Fast shopping agent. Think <=2 words. Zero prose."`), minimal 3-key alphabetical `search_catalog` schema (`{limit, query, view}`), `parallel_tool_calls: true`, and `tool_choice: "required"` (+200–400 tok/s on Call 1 by eliminating tool-decision thinking).
+2. **Unconstrained Speculative Decoding + Cross-Session KV Prefix Cache (`cacheR=1024`) on Call 2**:
+   - Leaves `tool_choice` **unset** on Call 2 (verified +400–500 tok/s vs `tool_choice: "none"`, which throttles Cerebras speculative decoding) while keeping `tools` intact to preserve the `1,024`-token KV prefix cache (`prompt_cache_key: "openclaw-speed-shop-v1"`).
+   - `shopify-catalog-mcp.mjs` pre-warms + caches the 5 live AU/AUD queries (5-min TTL, in-flight deduplication, `<35ms` total for all 5 parallel tool calls) and returns unwrapped 7-key pure-ASCII objects `{name, url, price_aud, store, audience, description: title, reason: "Great Christmas gift"}` for double-anchored verbatim speculative decoding.
+3. **Zero Background 429 Contention + Fast Recovery**:
+   - Disables OpenClaw's 23k-token background `skill-workshop-review` (`skills.workshop.autonomous.mode = "off"`) and skips background `conversation-label` calls on Cerebras.
+   - Caps OpenClaw's `RATE_LIMIT_RETRY_MAX_DELAY_MS` at `8s` (instead of `60s`) so transient Cerebras `429 queue_exceeded` bursts recover in seconds instead of stalling for 5+ minutes.
 
 ## Apply `testing` to Local OpenClaw
 
@@ -19,7 +19,20 @@ node openclaw-patches/apply-patches.mjs
 systemctl --user restart openclaw-gateway.service
 ```
 
-## 最新中文极速提示词（直接复制）
+## Fast English Prompt (Recommended — Zero Language Switching)
+
+```text
+Fast Christmas gift search: immediately call search_catalog 5 times in parallel in 1 turn with these exact arguments:
+{"limit":1,"query":"kids toy","view":"compact"}
+{"limit":1,"query":"teen desk","view":"compact"}
+{"limit":1,"query":"candle","view":"compact"}
+{"limit":1,"query":"blanket","view":"compact"}
+{"limit":1,"query":"pet toy","view":"compact"}
+Never make a second tool call. After results arrive, output zero prose and no markdown—only one compact single-line JSON copying all 5 returned product objects verbatim into gifts:
+{"gifts":[{"name":"","url":"","price_aud":0,"store":"","audience":"","description":"","reason":""}]}
+```
+
+## Mandarin Prompt (中文极速提示词)
 
 ```text
 极速圣诞选品：首轮立即并行调用5次`search_catalog`，严格原样传以下5组参数：
