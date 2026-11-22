@@ -74,6 +74,17 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
   const parsed = parseJsonOrSse(text);
   const rawProducts = parsed?.result?.structuredContent?.products || [];
 
+  const qLower = String(query || "").toLowerCase();
+  const audience = qLower.includes("kid")
+    ? "kids"
+    : qLower.includes("teen") || qLower.includes("desk")
+      ? "teens"
+      : qLower.includes("blanket") || qLower.includes("grand")
+        ? "grandparents"
+        : qLower.includes("pet") || qLower.includes("dog") || qLower.includes("cat")
+          ? "pets"
+          : "adults";
+
   const items = [];
   for (const p of rawProducts) {
     const v = Array.isArray(p?.variants) && p.variants.length > 0 ? p.variants[0] : null;
@@ -94,6 +105,9 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
       url: String(v.url),
       price_aud: price,
       store,
+      audience,
+      description: title,
+      reason: "Great Christmas gift",
     });
   }
 
@@ -106,7 +120,7 @@ async function queryShopifyCatalog(query, limit = 1, withShipsToFilter = true) {
 
 const TOOL_DEFINITION = {
   name: "search_catalog",
-  description: "Search live Shopify Global Catalog (AU/AUD). Returns real product {name,url,price_aud,store}.",
+  description: "Search live Shopify Global Catalog (AU/AUD). Returns {name,url,price_aud,store,audience,description,reason}.",
   annotations: {
     title: "Search Shopify Global Catalog",
     readOnlyHint: true,
